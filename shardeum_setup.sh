@@ -1,28 +1,28 @@
 #!/bin/bash
 
 # 1. Update 1
-sudo apt-get install curl
+sudo apt-get install curl -y
 until [[ "$PWD" == *"~" ]]
 do
   sleep 1
 done
 
 # 2. Update 2
-sudo apt update
+sudo apt update -y
 until [[ "$PWD" == *"~" ]]
 do
   sleep 1
 done
 
 # 3. Update 3
-sudo apt install docker.io
+sudo apt install docker.io -y
 until [[ "$PWD" == *"~" ]]
 do
   sleep 1
 done
 
 # 4. Update 4
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose -y
 until [[ "$PWD" == *"~" ]]
 do
   sleep 1
