@@ -36,7 +36,7 @@ do
 done
 
 # 5. インストーラをダウンロードし、実行
-output = $(curl -O https://gitlab.com/shardeum/validator/dashboard/-/raw/main/installer.sh && chmod +x installer.sh && ./installer.sh)
+curl -O https://gitlab.com/shardeum/validator/dashboard/-/raw/main/installer.sh && chmod +x installer.sh && ./installer.sh
 sleep 3
 y
 sleep 3
