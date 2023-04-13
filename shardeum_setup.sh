@@ -13,11 +13,10 @@ sudo apt install docker.io -y && echo "Update 3 has completed"
 
 # 4. Update 4
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose -y && echo "Update 4 has completed"
-sleep 10
+sleep 15
 
 # 4. Update 4-1
 sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
-sleep 3
 
 # 5. インストーラをダウンロードし、実行
 curl -O https://gitlab.com/shardeum/validator/dashboard/-/raw/main/installer.sh && chmod +x installer.sh && ./installer.sh 
