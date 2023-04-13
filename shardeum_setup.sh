@@ -2,42 +2,27 @@
 
 # 1. Update 1
 sudo apt-get install curl -y
-until [[ "$PWD" == *"~" ]]
-do
-  sleep 1
-done
+sleep 10
 
 # 2. Update 2
 sudo apt update -y
-until [[ "$PWD" == *"~" ]]
-do
-  sleep 1
-done
+sleep 30
 
 # 3. Update 3
 sudo apt install docker.io -y
-until [[ "$PWD" == *"~" ]]
-do
-  sleep 1
-done
+sleep 60
 
 # 4. Update 4
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose -y
-until [[ "$PWD" == *"~" ]]
-do
-  sleep 1
-done
+sleep 10
 
 # 4. Update 4-1
 sudo chmod +x /usr/local/bin/docker-compose
-until [[ "$PWD" == *"~" ]]
-do
-  sleep 1
-done
+sleep 3
 
 # 5. インストーラをダウンロードし、実行
 curl -O https://gitlab.com/shardeum/validator/dashboard/-/raw/main/installer.sh && chmod +x installer.sh && ./installer.sh
-sleep 3
+sleep 5
 y
 sleep 3
 y
