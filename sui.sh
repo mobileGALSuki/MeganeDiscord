@@ -2,8 +2,8 @@
 
 sudo apt update && sudo apt upgrade -y
 
-sudo apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends tzdata git ca-certificates curl build-essential libssl-dev pkg-config libclang-dev cmake jq
-sudo apt install libprotobuf-dev protobuf-compiler
+sudo apt-get update -y && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends tzdata git ca-certificates curl build-essential libssl-dev pkg-config libclang-dev cmake jq
+sudo apt install libprotobuf-dev protobuf-compiler -y
 wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
 sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
 
