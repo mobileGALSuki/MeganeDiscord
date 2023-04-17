@@ -21,9 +21,6 @@ sleep 15
 
 set -e
 
-By running this installer, you agree to allow the Shardeum team to collect this data. (y/n)?: " WARNING_AGREE
-WARNING_AGREE="y"
-
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
 # If any check fails exit with a message on what the user needs to do to fix the problem
 command -v git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
@@ -131,10 +128,10 @@ unset CHARCOUNT
 echo -n "Set the password to access the Dashboard: "
 DASHPASS="$PASSWORD"
 
-DASHPORT=20000
-SHMEXT=21000
-SHMINT=22000
-NODEHOME=~/.shardeum
+DASHPORT="20000"
+SHMEXT="21000"
+SHMINT="22000"
+NODEHOME="~/.shardeum"
 
 APPSEEDLIST="archiver-sphinx.shardeum.org"
 APPMONITOR="monitor-sphinx.shardeum.org"
