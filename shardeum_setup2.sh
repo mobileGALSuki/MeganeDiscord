@@ -133,7 +133,7 @@ echo -e "\e[1m\e[32m Port Settings \e[0m" && sleep 1
 DASHPORT="20000"
 SHMEXT="21000"
 SHMINT="22000"
-NODEHOME="~/.shardeum"
+NODEHOME=~/.shardeum
 
 APPSEEDLIST="archiver-sphinx.shardeum.org"
 APPMONITOR="monitor-sphinx.shardeum.org"
