@@ -23,9 +23,9 @@ set -e
 
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
 # If any check fails exit with a message on what the user needs to do to fix the problem
-command -v git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
-command -v docker >/dev/null 2>&1 || { echo >&2 "'docker' is required but not installed. See https://gitlab.com/shardeum/validator/dashboard/-/tree/dashboard-gui-nextjs#how-to for details."; exit 1; }
-if command -v docker-compose &>/dev/null; then
+command -v sudo git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
+command -v sudo docker >/dev/null 2>&1 || { echo >&2 "'docker' is required but not installed. See https://gitlab.com/shardeum/validator/dashboard/-/tree/dashboard-gui-nextjs#how-to for details."; exit 1; }
+if command -v sudo docker-compose &>/dev/null; then
   echo "docker-compose is installed on this machine"
 elif docker --help | grep -q "compose"; then
   echo "docker compose subcommand is installed on this machine"
@@ -37,7 +37,7 @@ fi
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 docker-safe() {
-  if ! command -v docker &>/dev/null; then
+  if ! command -v sudo docker &>/dev/null; then
     echo "docker is not installed on this machine"
     exit 1
   fi
@@ -49,7 +49,7 @@ docker-safe() {
 }
 
 docker-compose-safe() {
-  if command -v docker-compose &>/dev/null; then
+  if command -v sudo docker-compose &>/dev/null; then
     cmd="docker-compose"
   elif docker --help | grep -q "compose"; then
     cmd="docker compose"
