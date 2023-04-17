@@ -19,6 +19,10 @@ echo -e "\e[1m\e[32m4. sudo curl -L \e[0m" && sleep 1
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && echo "Update 4 has completed"
 sleep 15
 
+# 4. Update 4-1
+echo -e "\e[1m\e[32m5. sudo chmod +x \e[0m" && sleep 1
+sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
+
 set -e
 
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
