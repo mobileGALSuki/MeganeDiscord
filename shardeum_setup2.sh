@@ -121,13 +121,15 @@ cat << EOF
 
 EOF
 
-read -p "Do you want to run the web based Dashboard? (y/n): " RUNDASHBOARD
+echo -e "\e[1m\e[32m RUNDASHBOARD = y \e[0m" && sleep 1
+
 RUNDASHBOARD="y"
 
-unset CHARCOUNT
-echo -n "Set the password to access the Dashboard: "
+echo -e "\e[1m\e[32m PASSWORD = $PASSWORD \e[0m" && sleep 1
+
 DASHPASS="$PASSWORD"
 
+echo -e "\e[1m\e[32m Port Settings \e[0m" && sleep 1
 DASHPORT="20000"
 SHMEXT="21000"
 SHMINT="22000"
