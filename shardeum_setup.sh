@@ -21,9 +21,9 @@ sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
 # 5. インストーラをダウンロードし、実行
 curl -O https://gitlab.com/shardeum/validator/dashboard/-/raw/main/installer.sh && chmod +x installer.sh && ./installer.sh
 sleep 10
-y
+echo "y"
 sleep 10
-y
+echo "y"
 sleep 3
 echo "[$PASSWORD]"
 sleep 3
