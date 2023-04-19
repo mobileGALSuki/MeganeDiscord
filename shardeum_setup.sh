@@ -263,6 +263,10 @@ cd ~/.shardeum && echo "Update 6 has completed"
 echo -e "\e[1m\e[32m7. ./shell.sh \e[0m" && sleep 1
 ./shell.sh && echo "Update 7 has completed" && sleep 2
 
+# 7. operator-cli gui start
+source shell.sh
+operator-cli gui start
+
 # 8. operator-cli gui start
-echo -e "\e[1m\e[32m8. operator-cli gui start \e[0m" && sleep 1
-operator-cli gui start && echo "Update 8 has completed"
+#echo -e "\e[1m\e[32m8. operator-cli gui start \e[0m" && sleep 1
+#operator-cli gui start && echo "Update 8 has completed"
