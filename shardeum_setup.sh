@@ -27,9 +27,9 @@ set -e
 
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
 # If any check fails exit with a message on what the user needs to do to fix the problem
-command -v sudo git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
-command -v sudo docker >/dev/null 2>&1 || { echo >&2 "'docker' is required but not installed. See https://gitlab.com/shardeum/validator/dashboard/-/tree/dashboard-gui-nextjs#how-to for details."; exit 1; }
-if command -v sudo docker-compose &>/dev/null; then
+command -v git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo >&2 "'docker' is required but not installed. See https://gitlab.com/shardeum/validator/dashboard/-/tree/dashboard-gui-nextjs#how-to for details."; exit 1; }
+if command -v docker-compose &>/dev/null; then
   echo "docker-compose is installed on this machine"
 elif docker --help | grep -q "compose"; then
   echo "docker compose subcommand is installed on this machine"
@@ -41,7 +41,7 @@ fi
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 docker-safe() {
-  if ! command -v sudo docker &>/dev/null; then
+  if ! command -v docker &>/dev/null; then
     echo "docker is not installed on this machine"
     exit 1
   fi
@@ -53,7 +53,7 @@ docker-safe() {
 }
 
 docker-compose-safe() {
-  if command -v sudo docker-compose &>/dev/null; then
+  if command -v docker-compose &>/dev/null; then
     cmd="docker-compose"
   elif docker --help | grep -q "compose"; then
     cmd="docker compose"
@@ -137,10 +137,14 @@ echo -e "\e[1m\e[32m Port Settings \e[0m" && sleep 1
 DASHPORT="20000"
 SHMEXT="21000"
 SHMINT="22000"
+EXTERNALIP = "auto"
+INTERNALIP = "auto"
+
 NODEHOME=~/.shardeum
 
-APPSEEDLIST="archiver-sphinx.shardeum.org"
-APPMONITOR="monitor-sphinx.shardeum.org"
+#APPSEEDLIST="archiver-sphinx.shardeum.org"
+#APPMONITOR="monitor-sphinx.shardeum.org"
+APPMONITOR="52.59.208.112"
 
 cat <<EOF
 
@@ -176,7 +180,8 @@ LOCALLANIP=$(get_ip)
 cd ${NODEHOME} &&
 touch ./.env
 cat >./.env <<EOL
-APP_IP=auto
+EXT_IP=${EXTERNALIP}
+INT_IP=${INTERNALIP}
 EXISTING_ARCHIVERS=[{"ip":"18.194.3.6","port":4000,"publicKey":"758b1c119412298802cd28dbfa394cdfeecc4074492d60844cc192d632d84de3"},{"ip":"139.144.19.178","port":4000,"publicKey":"840e7b59a95d3c5f5044f4bc62ab9fa94bc107d391001141410983502e3cde63"},{"ip":"139.144.43.47","port":4000,"publicKey":"7af699dd711074eb96a8d1103e32b589e511613ebb0c6a789a9e8791b2b05f34"},{"ip":"72.14.178.106","port":4000,"publicKey":"2db7c949632d26b87d7e7a5a4ad41c306f63ee972655121a37c5e4f52b00a542"}]
 APP_MONITOR=${APPMONITOR}
 DASHPASS=${DASHPASS}
@@ -262,10 +267,6 @@ cd ~/.shardeum && echo "Update 6 has completed"
 # 7. ./shell.sh
 echo -e "\e[1m\e[32m7. ./shell.sh \e[0m" && sleep 1
 ./shell.sh && echo "Update 7 has completed" && sleep 2
-
-# 7. operator-cli gui start
-source shell.sh
-operator-cli gui start
 
 # 8. operator-cli gui start
 #echo -e "\e[1m\e[32m8. operator-cli gui start \e[0m" && sleep 1
