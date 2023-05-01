@@ -1,19 +1,12 @@
 #!/bin/bash
-
 #read -s -p "Enter ALCHEMY HTTPS ADDRESS: " ALCHEMY
 read -p "Enter ALCHEMY HTTPS ADDRESS: " ALCHEMY
 echo 'export ALCHEMY='$ALCHEMY >> $HOME/.bash_profile
-
 sudo apt update && sudo apt upgrade -y
-
 sudo apt install pkg-config curl git build-essential libssl-dev -y
-
 sudo apt install screen -y
-
 git clone --branch v0.5.3 https://github.com/eqlabs/pathfinder.git
-
 screen -S node
-
 mkdir -p $HOME/pathfinder
 docker run \
   --rm \
