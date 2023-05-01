@@ -52,4 +52,3 @@ private_key=$(grep "Private Key" $HOME/aleo/account_new.txt | awk '{print $3}')
 sudo screen -S aleo
 echo -e "\e[1m\e[32m12. ./run-prover.sh \e[0m" && sleep 1
 ./run-prover.sh
-echo "$private_key"
