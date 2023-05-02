@@ -11,7 +11,7 @@ else
   sudo apt install curl -y < "/dev/null"
 fi
 
-read -s -p "Enter ALCHEMY HTTPS ADDRESS: " ALCHEMY
+read -p "Enter ALCHEMY HTTPS ADDRESS: " ALCHEMY
 
 echo 'export ALCHEMY='$ALCHEMY >> $HOME/.bash_profile
 
