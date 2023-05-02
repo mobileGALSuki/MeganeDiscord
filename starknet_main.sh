@@ -23,7 +23,9 @@ sudo apt install screen -y
 
 git clone --branch v0.5.3 https://github.com/eqlabs/pathfinder.git
 
-screen -S node
+screen -S Starknet
+
+sudo apt install docker.io -y
 
 mkdir -p $HOME/pathfinder
 docker run \
