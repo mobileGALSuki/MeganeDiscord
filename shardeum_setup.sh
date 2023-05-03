@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-read -s -p "Enter Password: " PASSWORD
+read -p "Enter Password: " PASSWORD
 
 # 1. Update 1
 echo -e "\e[1m\e[32m1. sudo apt-get install curl -y \e[0m" && sleep 1
@@ -25,6 +25,8 @@ sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
 
 set -e
 
+sudo apt-get update && sudo apt-get install -y openssl
+
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
 # If any check fails exit with a message on what the user needs to do to fix the problem
 command -v git >/dev/null 2>&1 || { echo >&2 "'git' is required but not installed."; exit 1; }
@@ -47,7 +49,7 @@ docker-safe() {
   fi
 
   if ! docker $@; then
-    echo "Trying again with sudo..."
+    echo "Trying again with sudo..." >&2
     sudo docker $@
   fi
 }
@@ -110,11 +112,92 @@ get_external_ip() {
   echo $external_ip
 }
 
+hash_password() {
+  local input="$1"
+  local hashed_password
+
+  # Try using openssl
+  if command -v openssl > /dev/null; then
+    hashed_password=$(echo -n "$input" | openssl dgst -sha256 | awk '{print $1}')
+    echo "$hashed_password"
+    return 0
+  fi
+
+  # Try using shasum
+  if command -v shasum > /dev/null; then
+    hashed_password=$(echo -n "$input" | shasum -a 256 | awk '{print $1}')
+    echo "$hashed_password"
+    return 0
+  fi
+
+  # Try using sha256sum
+  if command -v sha256sum > /dev/null; then
+    hashed_password=$(echo -n "$input" | sha256sum | awk '{print $1}')
+    echo "$hashed_password"
+    return 0
+  fi
+
+  return 1
+}
+
 if [[ $(docker-safe info 2>&1) == *"Cannot connect to the Docker daemon"* ]]; then
     echo "Docker daemon is not running"
     exit 1
 else
     echo "Docker daemon is running"
+fi
+
+CURRENT_DIRECTORY=$(pwd)
+
+# DEFAULT VALUES FOR USER INPUTS
+DASHPORT_DEFAULT=20000
+EXTERNALIP_DEFAULT=auto
+INTERNALIP_DEFAULT=auto
+SHMEXT_DEFAULT=21000
+SHMINT_DEFAULT=22000
+PREVIOUS_PASSWORD=$PASSWORD
+
+#Check if container exists
+IMAGE_NAME="registry.gitlab.com/shardeum/server:latest"
+CONTAINER_ID=$(docker-safe ps -qf "ancestor=local-dashboard")
+if [ ! -z "${CONTAINER_ID}" ]; then
+  echo "CONTAINER_ID: ${CONTAINER_ID}"
+  echo "Existing container found. Reading settings from container."
+
+  # Assign output of read_container_settings to variable
+  if ! ENV_VARS=$(docker inspect --format="{{range .Config.Env}}{{println .}}{{end}}" "$CONTAINER_ID"); then
+    ENV_VARS=$(sudo docker inspect --format="{{range .Config.Env}}{{println .}}{{end}}" "$CONTAINER_ID")
+  fi
+
+  if ! docker-safe cp "${CONTAINER_ID}:/home/node/app/cli/build/secrets.json" ./; then
+    echo "Container does not have secrets.json"
+  else 
+    echo "Reusing secrets.json from container"
+  fi
+
+  docker-safe stop "${CONTAINER_ID}"
+  docker-safe rm "${CONTAINER_ID}"
+
+  # UPDATE DEFAULT VALUES WITH SAVED VALUES
+  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+')
+  EXTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'EXT_IP=\K[^ ]+')
+  INTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'INT_IP=\K[^ ]+')
+  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+')
+  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+')
+  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+')
+elif [ -f .shardeum/.env ]; then
+  echo "Existing .shardeum/.env file found. Reading settings from file."
+
+  # Read the .shardeum/.env file into a variable. Use default installer directory if it exists.
+  ENV_VARS=$(cat .shardeum/.env)
+
+  # UPDATE DEFAULT VALUES WITH SAVED VALUES
+  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+') || DASHPORT_DEFAULT=20000
+  EXTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'EXT_IP=\K[^ ]+') || EXTERNALIP_DEFAULT=auto
+  INTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'INT_IP=\K[^ ]+') || INTERNALIP_DEFAULT=auto
+  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+') || SHMEXT_DEFAULT=21000
+  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+') || SHMINT_DEFAULT=22000
+  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+') || PREVIOUS_PASSWORD=$PASSWORD
 fi
 
 cat << EOF
@@ -125,22 +208,20 @@ cat << EOF
 
 EOF
 
-echo -e "\e[1m\e[32m RUNDASHBOARD = y \e[0m" && sleep 1
-
 RUNDASHBOARD="y"
+DASHPASS=$PREVIOUS_PASSWORD
 
-echo -e "\e[1m\e[32m PASSWORD = $PASSWORD \e[0m" && sleep 1
+# Hash the password using the fallback mechanism
+DASHPASS=$(hash_password "$DASHPASS")
 
-DASHPASS="$PASSWORD"
+echo # New line after inputs.
+# echo "Password saved as:" $DASHPASS #DEBUG: TEST PASSWORD WAS RECORDED AFTER ENTERED.
 
-echo -e "\e[1m\e[32m Port Settings \e[0m" && sleep 1
-DASHPORT="20000"
-SHMEXT="21000"
-SHMINT="22000"
-EXTERNALIP = "auto"
-INTERNALIP = "auto"
-
-NODEHOME=~/.shardeum
+DASHPORT=${DASHPORT:-$DASHPORT_DEFAULT}
+EXTERNALIP=${EXTERNALIP:-$EXTERNALIP_DEFAULT}
+INTERNALIP=${INTERNALIP:-$INTERNALIP_DEFAULT}
+SHMEXT=${SHMEXT:-$SHMEXT_DEFAULT}
+NODEHOME=${NODEHOME:-~/.shardeum}
 
 #APPSEEDLIST="archiver-sphinx.shardeum.org"
 #APPMONITOR="monitor-sphinx.shardeum.org"
@@ -236,6 +317,16 @@ fi
 echo "Starting image. This could take a while..."
 (docker-safe logs -f shardeum-dashboard &) | grep -q 'done'
 
+# Check if secrets.json exists and copy it inside container
+cd ${CURRENT_DIRECTORY}
+if [ -f secrets.json ]; then
+  echo "Reusing old node"
+  CONTAINER_ID=$(docker-safe ps -qf "ancestor=local-dashboard")
+  echo "New container id is : $CONTAINER_ID"
+  docker-safe cp ./secrets.json "${CONTAINER_ID}:/home/node/app/cli/build/secrets.json"
+  rm -f secrets.json
+fi
+
 #Do not indent
 if [ $RUNDASHBOARD = "y" ]
 then
@@ -267,7 +358,3 @@ cd ~/.shardeum && echo "Update 6 has completed"
 # 7. ./shell.sh
 echo -e "\e[1m\e[32m7. ./shell.sh \e[0m" && sleep 1
 ./shell.sh && echo "Update 7 has completed" && sleep 2
-
-# 8. operator-cli gui start
-#echo -e "\e[1m\e[32m8. operator-cli gui start \e[0m" && sleep 1
-#operator-cli gui start && echo "Update 8 has completed"
