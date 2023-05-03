@@ -25,6 +25,7 @@ sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
 
 set -e
 
+echo -e "\e[1m\e[32m5. sudo apt-get update && sudo apt-get install -y openssl \e[0m" && sleep 1
 sudo apt-get update && sudo apt-get install -y openssl
 
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
@@ -217,11 +218,12 @@ DASHPASS=$(hash_password "$DASHPASS")
 echo # New line after inputs.
 # echo "Password saved as:" $DASHPASS #DEBUG: TEST PASSWORD WAS RECORDED AFTER ENTERED.
 
-DASHPORT=${DASHPORT:-$DASHPORT_DEFAULT}
-EXTERNALIP=${EXTERNALIP:-$EXTERNALIP_DEFAULT}
-INTERNALIP=${INTERNALIP:-$INTERNALIP_DEFAULT}
-SHMEXT=${SHMEXT:-$SHMEXT_DEFAULT}
-NODEHOME=${NODEHOME:-~/.shardeum}
+DASHPORT="20000"
+EXTERNALIP="auto"
+INTERNALIP="auto"
+SHMEXT="21000"
+SHMINT="22000"
+NODEHOME=~/.shardeum
 
 #APPSEEDLIST="archiver-sphinx.shardeum.org"
 #APPMONITOR="monitor-sphinx.shardeum.org"
