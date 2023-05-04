@@ -228,7 +228,7 @@ EXTERNALIP="auto"
 INTERNALIP="auto"
 SHMEXT="21000"
 SHMINT="22000"
-NODEHOME="~/.shardeum"
+NODEHOME=~/.shardeum
 
 #APPSEEDLIST="archiver-sphinx.shardeum.org"
 #APPMONITOR="monitor-sphinx.shardeum.org"
