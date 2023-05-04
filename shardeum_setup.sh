@@ -2,6 +2,9 @@
 
 read -p "Enter Password: " PASSWORD
 
+echo "$PASSWORD"
+echo $PASSWORD
+
 # 1. Update 1
 echo -e "\e[1m\e[32m1. sudo apt-get install curl -y \e[0m" && sleep 1
 sudo apt-get install curl -y && echo "Update 1 has completed"
