@@ -25,7 +25,6 @@ sudo chmod +x /usr/local/bin/docker-compose && echo "Update 4-1 has completed"
 
 set -e
 
-echo -e "\e[1m\e[32m5. sudo apt-get update && sudo apt-get install -y openssl \e[0m" && sleep 1
 sudo apt-get update && sudo apt-get install -y openssl
 
 # Check all things that will be needed for this script to succeed like access to docker and docker-compose
@@ -119,7 +118,7 @@ hash_password() {
 
   # Try using openssl
   if command -v openssl > /dev/null; then
-    hashed_password=$(echo -n "$input" | openssl dgst -sha256 | awk '{print $1}')
+    hashed_password=$(echo -n "$input" | openssl dgst -sha256 -r | awk '{print $1}')
     echo "$hashed_password"
     return 0
   fi
@@ -151,12 +150,12 @@ fi
 CURRENT_DIRECTORY=$(pwd)
 
 # DEFAULT VALUES FOR USER INPUTS
-DASHPORT_DEFAULT=20000
+DASHPORT_DEFAULT=8080
 EXTERNALIP_DEFAULT=auto
 INTERNALIP_DEFAULT=auto
-SHMEXT_DEFAULT=21000
-SHMINT_DEFAULT=22000
-PREVIOUS_PASSWORD=$PASSWORD
+SHMEXT_DEFAULT=9001
+SHMINT_DEFAULT=10001
+PREVIOUS_PASSWORD=none
 
 #Check if container exists
 IMAGE_NAME="registry.gitlab.com/shardeum/server:latest"
@@ -172,7 +171,7 @@ if [ ! -z "${CONTAINER_ID}" ]; then
 
   if ! docker-safe cp "${CONTAINER_ID}:/home/node/app/cli/build/secrets.json" ./; then
     echo "Container does not have secrets.json"
-  else 
+  else
     echo "Reusing secrets.json from container"
   fi
 
@@ -180,12 +179,12 @@ if [ ! -z "${CONTAINER_ID}" ]; then
   docker-safe rm "${CONTAINER_ID}"
 
   # UPDATE DEFAULT VALUES WITH SAVED VALUES
-  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+')
-  EXTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'EXT_IP=\K[^ ]+')
-  INTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'INT_IP=\K[^ ]+')
-  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+')
-  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+')
-  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+')
+  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+') || DASHPORT_DEFAULT=8080
+  EXTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'EXT_IP=\K[^ ]+') || EXTERNALIP_DEFAULT=auto
+  INTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'INT_IP=\K[^ ]+') || INTERNALIP_DEFAULT=auto
+  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+') || SHMEXT_DEFAULT=9001
+  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+') || SHMINT_DEFAULT=10001
+  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+') || PREVIOUS_PASSWORD=none
 elif [ -f .shardeum/.env ]; then
   echo "Existing .shardeum/.env file found. Reading settings from file."
 
@@ -193,12 +192,12 @@ elif [ -f .shardeum/.env ]; then
   ENV_VARS=$(cat .shardeum/.env)
 
   # UPDATE DEFAULT VALUES WITH SAVED VALUES
-  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+') || DASHPORT_DEFAULT=20000
+  DASHPORT_DEFAULT=$(echo $ENV_VARS | grep -oP 'DASHPORT=\K[^ ]+') || DASHPORT_DEFAULT=8080
   EXTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'EXT_IP=\K[^ ]+') || EXTERNALIP_DEFAULT=auto
   INTERNALIP_DEFAULT=$(echo $ENV_VARS | grep -oP 'INT_IP=\K[^ ]+') || INTERNALIP_DEFAULT=auto
-  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+') || SHMEXT_DEFAULT=21000
-  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+') || SHMINT_DEFAULT=22000
-  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+') || PREVIOUS_PASSWORD=$PASSWORD
+  SHMEXT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMEXT=\K[^ ]+') || SHMEXT_DEFAULT=9001
+  SHMINT_DEFAULT=$(echo $ENV_VARS | grep -oP 'SHMINT=\K[^ ]+') || SHMINT_DEFAULT=10001
+  PREVIOUS_PASSWORD=$(echo $ENV_VARS | grep -oP 'DASHPASS=\K[^ ]+') || PREVIOUS_PASSWORD=none
 fi
 
 cat << EOF
@@ -208,26 +207,38 @@ cat << EOF
 #########################
 
 EOF
-
 RUNDASHBOARD="y"
-DASHPASS=$PREVIOUS_PASSWORD
+CHANGEPASSWORD="y"
+DASHPASS=PASSWORD
 
-# Hash the password using the fallback mechanism
-DASHPASS=$(hash_password "$DASHPASS")
+  # Hash the password using the fallback mechanism
+  DASHPASS=$(hash_password "$DASHPASS")
+else
+  DASHPASS=$PREVIOUS_PASSWORD
+  if ! [[ $DASHPASS =~ ^[0-9a-f]{64}$ ]]; then
+    DASHPASS=$(hash_password "$DASHPASS")
+  fi
+fi
+
+if [ -z "$DASHPASS" ]; then
+  echo -e "\nFailed to hash the password. Please ensure you have openssl"
+  exit 1
+fi
 
 echo # New line after inputs.
 # echo "Password saved as:" $DASHPASS #DEBUG: TEST PASSWORD WAS RECORDED AFTER ENTERED.
 
 DASHPORT="20000"
+
 EXTERNALIP="auto"
 INTERNALIP="auto"
 SHMEXT="21000"
 SHMINT="22000"
-NODEHOME=~/.shardeum
+NODEHOME="~/.shardeum"
 
 #APPSEEDLIST="archiver-sphinx.shardeum.org"
 #APPMONITOR="monitor-sphinx.shardeum.org"
-APPMONITOR="52.59.208.112"
+APPMONITOR="139.144.35.86"
 
 cat <<EOF
 
@@ -265,7 +276,7 @@ touch ./.env
 cat >./.env <<EOL
 EXT_IP=${EXTERNALIP}
 INT_IP=${INTERNALIP}
-EXISTING_ARCHIVERS=[{"ip":"18.194.3.6","port":4000,"publicKey":"758b1c119412298802cd28dbfa394cdfeecc4074492d60844cc192d632d84de3"},{"ip":"139.144.19.178","port":4000,"publicKey":"840e7b59a95d3c5f5044f4bc62ab9fa94bc107d391001141410983502e3cde63"},{"ip":"139.144.43.47","port":4000,"publicKey":"7af699dd711074eb96a8d1103e32b589e511613ebb0c6a789a9e8791b2b05f34"},{"ip":"72.14.178.106","port":4000,"publicKey":"2db7c949632d26b87d7e7a5a4ad41c306f63ee972655121a37c5e4f52b00a542"}]
+EXISTING_ARCHIVERS=[{"ip":"194.195.223.142","port":4000,"publicKey":"840e7b59a95d3c5f5044f4bc62ab9fa94bc107d391001141410983502e3cde63"},{"ip":"45.79.193.36","port":4000,"publicKey":"7af699dd711074eb96a8d1103e32b589e511613ebb0c6a789a9e8791b2b05f34"},{"ip":"45.79.108.24","port":4000,"publicKey":"2db7c949632d26b87d7e7a5a4ad41c306f63ee972655121a37c5e4f52b00a542"}]
 APP_MONITOR=${APPMONITOR}
 DASHPASS=${DASHPASS}
 DASHPORT=${DASHPORT}
