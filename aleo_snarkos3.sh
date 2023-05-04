@@ -12,6 +12,7 @@ fi
 echo -e "\e[1m\e[32m1. Install Dependecies \e[0m" && sleep 1
 sudo apt update -y
 sudo apt install make clang pkg-config libssl-dev build-essential gcc xz-utils git curl vim tmux ntp jq llvm ufw -y < "/dev/null"
+sudo apt install screen -y
 echo -e "\e[1m\e[32m2. curl \e[0m" && sleep 1
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y
 echo "=================================================="
